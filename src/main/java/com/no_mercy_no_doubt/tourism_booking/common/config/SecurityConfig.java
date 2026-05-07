@@ -36,15 +36,21 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
+                                "/actuator/health",
+                                "/api/health",
                                 "/api/auth/**",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
-                                "/swagger-ui.html"
-                        ).permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/hotels/**", "/api/room-type/**", "/api/availability/**", "/api/recommendations/**").authenticated()
+                                "/swagger-ui.html")
+                        .permitAll()
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/hotels/**",
+                                "/api/room-type/**",
+                                "/api/availability/**",
+                                "/api/recommendations/**")
+                        .authenticated()
                         .requestMatchers("/api/admin/**", "/api/users/**").authenticated()
-                        .anyRequest().authenticated()
-                )
+                        .anyRequest().authenticated())
                 .authenticationProvider(authenticationProvider())
                 .exceptionHandling(ex -> ex
                         .defaultAuthenticationEntryPointFor(
@@ -52,11 +58,10 @@ public class SecurityConfig {
                                     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                                     response.setContentType(MediaType.APPLICATION_JSON_VALUE);
                                     response.setCharacterEncoding("UTF-8");
-                                    response.getWriter().write("{\"status\":401,\"error\":\"Unauthorized\",\"message\":\"Either email or password is incorrect.\"}");
+                                    response.getWriter().write(
+                                            "{\"status\":401,\"error\":\"Unauthorized\",\"message\":\"Either email or password is incorrect.\"}");
                                 },
-                                request -> request.getRequestURI().startsWith("/api")
-                        )
-                )
+                                request -> request.getRequestURI().startsWith("/api")))
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
